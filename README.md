@@ -1,3 +1,10 @@
+
+# 关于pwr的一切： https://cran.r-project.org/web/packages/pwr/pwr.pdf
+
+
+
+
+library(pwr)
 pwr.2p.test    two proportions (equal n) 
 pwr.2p2n.test  two proportions (unequal n) 
 pwr.anova.test  balanced one way ANOVA 
@@ -44,12 +51,8 @@ p2=power.anova.test(groups=3, between.var = var(groupmeans), within.var = pooled
 p2$n
 
 
-
-
 # 2.main effect of 2D:4D
 pwr.t.test
-
-
 
 
 # 3. correlation between 2D : 4D and the minimum acceptance level. 
