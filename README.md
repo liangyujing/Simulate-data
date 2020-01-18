@@ -14,7 +14,7 @@ pwr.t2n.test  t-test (two samples with unequal n)
 # 1. ANOVA
 # 3. correlation
 
-# 1. ANOVA  已知 F2,87=5.49；p<0.01.
+# 1. ANOVA  F2,87=5.49；p<0.01.
 # combined standard deviation
 sd1=0.32
 sd2=0.27
@@ -26,7 +26,7 @@ n3=28
 
 pooledSD<-sqrt(sum(sd1^2*(n1-1)+sd2^2*(n2-1)+sd3^2*(n3-1))/sum(n1+n2+n3-3))
                                   
-## 2. ANOVA  规定power = 0.8， 求sample size
+## 2. ANOVA  power = 0.8， sample size?
 # power analysis of ANOVA
 ### x轴：sample size； Y轴：power
 groupmeans <- c(2.75, 3.2, 3.54)
@@ -48,12 +48,12 @@ pwr.t.test
 # between 2D : 4D and the minimum acceptance level. 
 # elderly women condition: (rs=-0.30, p>0.05, n=28),
 
-## 3.1 画图  elderly condition   x轴：sample size； Y轴：power
+## 3.1 graph: elderly condition   x轴：sample size； Y轴：power
 library("pwr")
 p3=pwr.r.test(n =c(10,20,30,40,50,60,70,80,90,100), r =-0.3 , sig.level = .05, power = NULL) 
 plot(p3$n,p3$power,type="b",xlab="sample size",ylab="power")
 
-## 3.2 规定power = 0.8， 求sample size
+## 3.2 power = 0.8， sample size?
 ## calculate the sample per group to get 0.80 power for 3 conditions.
 ##### I' not sure whether for correlation, we should also expect a 0.80 power ### 
 p4=pwr.r.test(n = NULL, r =-0.3 , sig.level = .05, power = 0.80)
