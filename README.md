@@ -1,131 +1,104 @@
-# 关于pwr的一切： https://cran.r-project.org/web/packages/pwr/pwr.pdf
+rm(list=ls())
+set.seed(1000)
+# 1. Simulate all the data
+## 1.1. Simulate columns for Minimum acceptance level and digit ratio
+### Number of participants for each condition
+ns <- 95
+ne <- 95
+ny <- 95
+### Mean and standard deviation of Minimum acceptance level
+mus <- 2.73                  
+mue <- 3.2                
+muy <- 3.54             
+sds <- 0.32                  
+sde <- 0.33                
+sdy <- 0.27
+### Mean and sd of Digit ratio
+mu_d <- 0.947                  
+sd_d <- 0.029
+### Correlations
+rda_s <- .40
+rda_e <- -.30
+rda_y <- -0.36
+### Draw data from normal distribution
+#Sys.setlocale(locale="C")
+sexy <- MASS::mvrnorm(ns, 
+                c(mus, mu_d),
+                matrix(c(sds^2,(rda_s)*sds*sd_d,(rda_s)*sds*sd_d,sd_d^2),2,2))
+newsexy <- cbind(sexy[,2],sexy[,1])
+plot(newsexy, 
+     pch=21, 
+     ylim=c(0, 6), xlim=c(0.85,1.05), 
+     ylab="Minimum acceptance level", xlab="Digit ratio", main = "Sexy Condition",
+     bg = "gold")
 
-library(pwr)
-pwr.2p.test    two proportions (equal n) 
-pwr.2p2n.test  two proportions (unequal n) 
-pwr.anova.test  balanced one way ANOVA 
-pwr.chisq.test  chi-square test
-pwr.f2.test  general linear model 
-pwr.p.test  proportion (one sample) 
-pwr.r.test  correlation
-pwr.t.test  t-tests (one sample, 2 sample, paired) 
-pwr.t2n.test  t-test (two samples with unequal n) 
+elderly <- MASS::mvrnorm(ne, 
+                   c(mue, mu_d), 
+                   matrix(c(sde^2,(rda_e)*sde*sd_d,(rda_e)*sde*sd_d,sd_d^2),2,2))
+newelderly <- cbind(elderly[,2],elderly[,1])
+plot(newelderly, 
+     pch=21, 
+     ylim=c(0, 6), xlim=c(0.85,1.05), 
+     ylab="Minimum acceptance level", xlab="Digit ratio", main = "Elderly Condition",
+     bg = "lightblue")
 
-# 1. ANOVA
-# 3. correlation
+young <- MASS::mvrnorm(ny, 
+                 c(muy, mu_d), 
+                 matrix(c(sdy^2,(rda_y)*sdy*sd_d,(rda_y)*sdy*sd_d,sd_d^2),2,2))
+newyoung <- cbind(young[,2],young[,1])
+plot(newyoung, 
+     pch=21, 
+     ylim=c(0, 6), xlim=c(0.85,1.05), 
+     ylab="Minimum acceptance level", xlab="Digit ratio", main = "Young Condition",
+     bg = "lightgreen")
 
-# 1. ANOVA  F2,87=5.49；p<0.01.
-# combined standard deviation
-sd1=0.32
-sd2=0.27
-sd3=0.33
+### Combine 3 conditions
+combine_data <- rbind(sexy,elderly,young)
+colnames(combine_data, do.NULL = FALSE) 
+colnames(combine_data) <- c("Acceptance","DigitRatio")
 
-n1=30
-n2=35
-n3=28
+## 1.2. Simulate picture conditions column
+picture<-factor(c(rep("sexy",ns), rep("elderly",ne), rep("young",ny)))
 
-pooledSD<-sqrt(sum(sd1^2*(n1-1)+sd2^2*(n2-1)+sd3^2*(n3-1))/sum(n1+n2+n3-3))
-                                  
-## 2. ANOVA  power = 0.8， sample size?
-# power analysis of ANOVA
-### x轴：sample size； Y轴：power
-groupmeans <- c(2.75, 3.2, 3.54)
-p1 <- power.anova.test(groups = length(groupmeans), 
-                      between.var = var(groupmeans), within.var = pooledSD, 
-                      sig.level=0.01,n=c(10,15,20,25,30,35))
-plot(p1$n,p1$power,type="b",xlab="sample size",ylab="power")
+## 1.3. Simulate subjects column
+subjects <- factor(c(seq(1,ns), seq(1,ne), seq(1,ny)))
 
-## calculate the sample per group to get 0.80 power.
-p2=power.anova.test(groups=3, between.var = var(groupmeans), within.var = pooledSD, 
-                    sig.level=0.01, power=.80) 
-p2$n
+# 1.4. Simulate manipulation check: suppose a 9 point scale, mean comes from "Physical Attractiveness, Age, And Body Type (1988)", sd added our own
+sexy_rating = rnorm(n = ns, mean = 6.35, sd = 1)
+elderly_rating = rnorm(n = ne, mean = 4.40, sd = 1)
+young_rating = rnorm(n = ny, mean = 4.02, sd = 1)
 
+## Combine 3 conditions for column manipulation check
+manipulation_check <- c(sexy_rating,elderly_rating,young_rating)
 
-# 2.main effect of 2D:4D
-pwr.t.test
+# 2. Combine ALL COLUMNS to create Simulated_Data data set
+Simulated_Data_all <- cbind.data.frame(picture, subjects, combine_data, manipulation_check)
+#write.table (Alldata,file = "Simulated_Data",sep=",") --> If you want to write output file for the simulated data
 
-# 3. correlation         
-# between 2D : 4D and the minimum acceptance level. 
-# elderly women condition: (rs=-0.30, p>0.05, n=28),
+# 3.Simulate missing data + Exclude: assuming 5 of them failed attention check, 2 of them not complete experiments --> randomly remove 7 rows in total
+Simulated_Data_exclude <- Simulated_Data_all[-sample(1:nrow(Simulated_Data_all), 7), ]
+summary(Simulated_Data_exclude)
+#write.table (Simulated_Data_exclude, file = "Simulated_Data_Exclude",sep=",") -->  If you want to output to a csv file 
 
-## 3.1 graph: elderly condition   x轴：sample size； Y轴：power
-library("pwr")
-p3=pwr.r.test(n =c(10,20,30,40,50,60,70,80,90,100), r =-0.3 , sig.level = .05, power = NULL) 
-plot(p3$n,p3$power,type="b",xlab="sample size",ylab="power")
+# 4. Outliers: use boxplot to detect outliers
+##acceptance outliers: none
+boxplot(Simulated_Data_exclude$Acceptance, 
+        main = 'boxplot acceptance level')
+outliers_acceptance <- boxplot(Simulated_Data_exclude$Acceptance)$out
+outliers_acceptance
+##digit outliers: one that equals 1.03657952109468
+boxplot(Simulated_Data_exclude$DigitRatio,
+        main = 'boxplot digit ratio')
+outliers_digit <- boxplot(Simulated_Data_exclude$DigitRatio)$out
+outliers_digit
+## Remove outlier(s) from dataset
+Simulated_Data <- Simulated_Data_exclude[-which(Simulated_Data_exclude$Acceptance %in% outliers_acceptance),]
+Simulated_Data <- Simulated_Data[-which(Simulated_Data_exclude$DigitRatio %in% outliers_digit),]
+#write.table (Simulated_Data.new,file = "Simulated_Data_withoutoutlier",sep=",") --> if want to write csv file
 
-## 3.2 power = 0.8， sample size?
-## calculate the sample per group to get 0.80 power for 3 conditions.
-##### I' not sure whether for correlation, we should also expect a 0.80 power ### 
-p4=pwr.r.test(n = NULL, r =-0.3 , sig.level = .05, power = 0.80)
-p5=pwr.r.test(n = NULL, r =0.4 , sig.level = .05, power = 0.80) 
-p6=pwr.r.test(n = NULL, r =-0.36 , sig.level = .05, power = 0.80) 
-
-p4$n
-p5$n
-p6$n
-
-
-# Rmarkdown
-```{r Power Analysis, include = FALSE}
-#power analysis
-
-# 1. ANOVA of minimum acceptance level.
-##Sample size: n=95
-##Sexy women condition: n=30, m=2.75, sd=0.32
-##Young women condition:n=35, m=3.54, sd=0.27
-##Elderly women condition: n=28, =3.2, sd=0.33
-## F2,87=5.49, p<0.01.
-
-## combined standard deviation
-sd1 <- 0.32
-sd2 <- 0.27
-sd3 <- 0.33
-
-n1 <- 30
-n2 <- 35
-n3 <-28
-
-pooledSD <-sqrt(sum(sd1^2*(n1-1)+sd2^2*(n2-1)+sd3^2*(n3-1))/sum(n1+n2+n3-3))
-                                  
-## power analysis of ANOVA
-groupmeans <- c(2.75, 3.2, 3.54)
-p1 <- power.anova.test(groups = length(groupmeans), 
-                      between.var = var(groupmeans), within.var = pooledSD, 
-                      sig.level=0.01,n=c(10,15,20,25,30,35))
-
-plot(p1$n,p1$power,type="b",xlab="sample size",ylab="power")
-
-## calculate the sample per group to get 0.80 power.
-p2 <- power.anova.test(groups=3, between.var = var(groupmeans), within.var = pooledSD, 
-                    sig.level=0.01, power=.80) 
-
-
-
-# 2.main effect of 2D:4D
-##main effect of 2D : 4D, F(1,87)= 0.23, p>0.05,
-
-# power analysis of main effect
-##The delta	(true difference in means) and sd are missing, not able to do the power test here.
-##power.t.test
-
-# 3. spearman correlation between 2D : 4D and the minimum acceptance level.
-## elderly women condition: (rs=-0.30, p>0.05, n=28),
-## sexy women condition: (rs=0.40, p<0.05, n=30).
-## young women condition (rs=-0.36, p<0.05, n=35).
-
-## elderly condition
-p3 <- pwr::pwr.r.test(n =c(10,20,30,40,50,60,70,80,90,100), r =-0.3 , sig.level = .05, power = NULL) 
-plot(p3$n,p3$power,type="b",xlab="sample size",ylab="power")
-
-## calculate the sample per group to get 0.80 power for 3 conditions.
-##### I' not sure whether for correlation, we should also expect a 0.80 power ### 
-p4 <- pwr::pwr.r.test(n = NULL, r =-0.3 , sig.level = .05, power = 0.80)
-p5 <- pwr::pwr.r.test(n = NULL, r =0.4 , sig.level = .05, power = 0.80) 
-p6 <- pwr::pwr.r.test(n = NULL, r =-0.36 , sig.level = .05, power = 0.80) 
-
-
-p2$n
-p4$n
-p5$n
-p6$n
+# Make variables (easier further calcualtions)
+picture <- Simulated_Data$picture
+acceptance <- Simulated_Data$Acceptance
+digit <-Simulated_Data$Digit
+manipulation_check <- Simulated_Data$manipulation_check
 ```
