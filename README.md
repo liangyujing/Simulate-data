@@ -1,3 +1,4 @@
+```
 rm(list=ls())
 set.seed(1000)
 # 1. Simulate all the data
